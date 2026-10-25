@@ -1,9 +1,11 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../logic/game_engine.dart';
 import '../models/game.dart';
 import '../state/game_notifier.dart';
 import '../widgets/elimination_dialog.dart';
+import '../widgets/glass_background.dart';
 import '../widgets/player_score_card.dart';
 import '../widgets/round_history_view.dart';
 import '../widgets/undo_dialog.dart';
@@ -114,7 +116,6 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
                 content: Text(
                   'Manche ${roundToUndo.roundNumber} annulée avec succès.',
                 ),
-                backgroundColor: AppColors.surfaceElevated,
               ),
             );
           }
@@ -189,7 +190,14 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
               ),
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert),
-                color: AppColors.surfaceElevated,
+                color: Colors.white.withValues(alpha: 0.95),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: const BorderSide(
+                    color: AppColors.glassBorderSubtle,
+                    width: 0.8,
+                  ),
+                ),
                 onSelected: (value) {
                   if (value == 'undo') {
                     _confirmUndo();
@@ -207,7 +215,11 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
                     enabled: game.undoSnapshots.isNotEmpty,
                     child: const Row(
                       children: [
-                        Icon(Icons.undo, color: AppColors.warning, size: 18),
+                        Icon(
+                          Icons.undo_rounded,
+                          color: AppColors.warning,
+                          size: 18,
+                        ),
                         SizedBox(width: 8),
                         Text('Annuler la dernière manche'),
                       ],
@@ -218,8 +230,8 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
                     child: Row(
                       children: [
                         Icon(
-                          Icons.info_outline,
-                          color: AppColors.gold,
+                          Icons.info_outline_rounded,
+                          color: AppColors.primary,
                           size: 18,
                         ),
                         SizedBox(width: 8),
@@ -246,178 +258,198 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
               ),
             ],
           ),
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Game Header Banner: Round count & Elimination limit
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.flag_outlined,
-                              size: 18,
-                              color: AppColors.gold,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Limite: ${game.eliminationLimit} pts',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.goldLight,
+          body: GlassBackground(
+            child: SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Header Status Banner
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.85),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(
+                              0xFF25283B,
+                            ).withValues(alpha: 0.03),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.flag_rounded,
+                                size: 16,
+                                color: AppColors.primary,
                               ),
-                            ),
-                          ],
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.surfaceElevated,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.border),
-                          ),
-                          child: Text(
-                            '${game.rounds.length} manche${game.rounds.length > 1 ? 's' : ''}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Pending elimination decision warning if any
-                  if (game.hasPendingDecisions) ...[
-                    InkWell(
-                      onTap: () => _showNextEliminationDialog(game),
-                      borderRadius: BorderRadius.circular(14),
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.dangerSurface,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: AppColors.danger,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.warning_amber_rounded,
-                              color: AppColors.danger,
-                              size: 24,
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                '${game.pendingEliminationPlayers.length} joueur(s) ont atteint la limite ! Cliquez pour trancher (Revanche ou Élimination).',
+                              const SizedBox(width: 6),
+                              Text(
+                                'Limite: ${game.eliminationLimit} pts',
                                 style: const TextStyle(
-                                  color: AppColors.danger,
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary,
                                 ),
                               ),
+                            ],
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
                             ),
-                            const Icon(
-                              Icons.chevron_right,
-                              color: AppColors.danger,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F3F8),
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                          ],
-                        ),
+                            child: Text(
+                              '${game.rounds.length} manche${game.rounds.length > 1 ? 's' : ''}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primaryDark,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 14),
-                  ],
 
-                  // Player Cards Grid (2 columns on mobile)
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final crossAxisCount = constraints.maxWidth > 550 ? 3 : 2;
-                      return GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: crossAxisCount,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          mainAxisExtent: 135,
+                    // Pending elimination warning
+                    if (game.hasPendingDecisions) ...[
+                      InkWell(
+                        onTap: () => _showNextEliminationDialog(game),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF4F4),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: AppColors.danger.withValues(alpha: 0.4),
+                              width: 1.2,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.warning_amber_rounded,
+                                color: AppColors.danger,
+                                size: 22,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  '${game.pendingEliminationPlayers.length} joueur(s) ont atteint la limite ! Cliquez pour trancher.',
+                                  style: const TextStyle(
+                                    color: AppColors.danger,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              const Icon(
+                                Icons.chevron_right_rounded,
+                                color: AppColors.danger,
+                              ),
+                            ],
+                          ),
                         ),
-                        itemCount: rankings.length,
-                        itemBuilder: (context, index) {
-                          final item = rankings[index];
-                          return PlayerScoreCard(
-                            player: item.player,
-                            eliminationLimit: game.eliminationLimit,
-                            rank: item.rank,
-                            isWinner: item.isWinner,
-                          );
-                        },
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 20),
+                      ),
+                      const SizedBox(height: 14),
+                    ],
 
-                  // Round History Section
-                  RoundHistoryView(game: game, onUndoLastRound: _confirmUndo),
+                    // Player Score Cards Grid
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final crossAxisCount = constraints.maxWidth > 550
+                            ? 3
+                            : 2;
+                        return GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: crossAxisCount,
+                                crossAxisSpacing: 10,
+                                mainAxisSpacing: 10,
+                                mainAxisExtent: 140,
+                              ),
+                          itemCount: rankings.length,
+                          itemBuilder: (context, index) {
+                            final item = rankings[index];
+                            return PlayerScoreCard(
+                              player: item.player,
+                              eliminationLimit: game.eliminationLimit,
+                              rank: item.rank,
+                              isWinner: item.isWinner,
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 18),
 
-                  const SizedBox(
-                    height: 80,
-                  ), // Padding for sticky bottom button
-                ],
+                    // Round History
+                    RoundHistoryView(game: game, onUndoLastRound: _confirmUndo),
+
+                    const SizedBox(height: 85),
+                  ],
+                ),
               ),
             ),
           ),
-          bottomSheet: Container(
-            color: AppColors.background,
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-            child: SafeArea(
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: canAdd
-                      ? AppColors.gold
-                      : AppColors.surfaceElevated,
-                  foregroundColor: canAdd
-                      ? AppColors.background
-                      : AppColors.textMuted,
-                  minimumSize: const Size.fromHeight(52),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                onPressed: canAdd ? () => _openAddRoundScreen(game) : null,
-                icon: const Icon(Icons.add_circle, size: 22),
-                label: Text(
-                  game.hasPendingDecisions
-                      ? 'Régler l\'élimination avant d\'ajouter'
-                      : (game.isCompleted
-                            ? 'Partie terminée'
-                            : 'Ajouter une manche'),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
+          bottomSheet: ClipRRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                color: Colors.white.withValues(alpha: 0.88),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                child: SafeArea(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: canAdd
+                          ? AppColors.primary
+                          : const Color(0xFFE5E7EB),
+                      foregroundColor: canAdd
+                          ? Colors.white
+                          : AppColors.textMuted,
+                      minimumSize: const Size.fromHeight(52),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    onPressed: canAdd ? () => _openAddRoundScreen(game) : null,
+                    icon: const Icon(Icons.add_circle_outline, size: 20),
+                    label: Text(
+                      game.hasPendingDecisions
+                          ? 'Régler l\'élimination avant d\'ajouter'
+                          : (game.isCompleted
+                                ? 'Partie terminée'
+                                : 'Ajouter une manche'),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
                 ),
               ),

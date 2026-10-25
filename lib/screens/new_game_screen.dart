@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../state/game_notifier.dart';
+import '../widgets/glass_background.dart';
 import 'scoreboard_screen.dart';
 
 class NewGameScreen extends StatefulWidget {
@@ -74,7 +75,6 @@ class _NewGameScreenState extends State<NewGameScreen> {
         .map((c) => c.text.trim())
         .toList();
 
-    // Validate empty names
     for (int i = 0; i < playerNames.length; i++) {
       if (playerNames[i].isEmpty) {
         setState(() {
@@ -84,7 +84,6 @@ class _NewGameScreenState extends State<NewGameScreen> {
       }
     }
 
-    // Validate duplicates
     final lowerNames = playerNames.map((n) => n.toLowerCase()).toSet();
     if (lowerNames.length != playerNames.length) {
       setState(() {
@@ -122,221 +121,315 @@ class _NewGameScreenState extends State<NewGameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Nouvelle partie')),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Section: Elimination limit
-                _buildSectionHeader(
-                  icon: Icons.flag_rounded,
-                  title: 'Limite d\'élimination',
-                  subtitle:
-                      'Le joueur qui atteint ou dépasse cette limite est éliminé.',
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _limitController,
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
-                  decoration: const InputDecoration(
-                    labelText: 'Points d\'élimination',
-                    suffixText: 'points',
-                    prefixIcon: Icon(
-                      Icons.speed_rounded,
-                      color: AppColors.gold,
-                    ),
-                  ),
-                  validator: (val) {
-                    final n = int.tryParse(val?.trim() ?? '');
-                    if (n == null || n <= 0) {
-                      return 'Entrez un nombre supérieur à 0';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 8),
-                // Helper chips
-                Row(
-                  children: [
-                    const Text(
-                      'Raccourcis : ',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    _buildLimitChip(101),
-                    const SizedBox(width: 8),
-                    _buildLimitChip(151),
-                    const SizedBox(width: 8),
-                    _buildLimitChip(201),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // Section: Player Count
-                _buildSectionHeader(
-                  icon: Icons.group_rounded,
-                  title: 'Nombre de joueurs',
-                  subtitle: 'Choisissez entre 2 et 4 joueurs.',
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [2, 3, 4].map((count) {
-                    final isSelected = _playerCount == count;
-                    return Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor: isSelected
-                                ? AppColors.primaryLight
-                                : AppColors.surface,
-                            foregroundColor: isSelected
-                                ? AppColors.goldLight
-                                : AppColors.textSecondary,
-                            side: BorderSide(
-                              color: isSelected
-                                  ? AppColors.gold
-                                  : AppColors.border,
-                              width: isSelected ? 1.6 : 1.0,
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                          ),
-                          onPressed: () => _onPlayerCountChanged(count),
-                          child: Text(
-                            '$count joueurs',
-                            style: TextStyle(
-                              fontWeight: isSelected
-                                  ? FontWeight.w800
-                                  : FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 24),
-
-                // Section: Player names
-                _buildSectionHeader(
-                  icon: Icons.badge_rounded,
-                  title: 'Noms des joueurs',
-                  subtitle: 'Personnalisez les noms avant de démarrer.',
-                ),
-                const SizedBox(height: 12),
-                ...List.generate(_playerCount, (index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: TextFormField(
-                      controller: _nameControllers[index],
-                      textCapitalization: TextCapitalization.words,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                      decoration: InputDecoration(
-                        labelText: 'Joueur ${index + 1}',
-                        prefixIcon: CircleAvatar(
-                          radius: 12,
-                          backgroundColor: AppColors.primary,
-                          child: Text(
-                            '${index + 1}',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.goldLight,
-                            ),
-                          ),
-                        ),
-                      ),
-                      validator: (val) {
-                        if (val == null || val.trim().isEmpty) {
-                          return 'Le nom ne peut pas être vide';
-                        }
-                        return null;
-                      },
-                    ),
-                  );
-                }),
-
-                if (_generalError != null) ...[
-                  const SizedBox(height: 8),
+      body: GlassBackground(
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Elimination limit section card
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
-                      color: AppColors.dangerSurface,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.danger),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.error_outline,
-                          color: AppColors.danger,
-                          size: 20,
+                      color: Colors.white.withValues(alpha: 0.88),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white, width: 1.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(
+                            0xFF25283B,
+                          ).withValues(alpha: 0.03),
+                          blurRadius: 14,
+                          offset: const Offset(0, 3),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            _generalError!,
-                            style: const TextStyle(
-                              color: AppColors.danger,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionHeader(
+                          icon: Icons.flag_rounded,
+                          title: 'Limite d\'élimination',
+                          subtitle: 'Seuil auquel un joueur est éliminé.',
+                          color: AppColors.primary,
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _limitController,
+                          keyboardType: TextInputType.number,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                          decoration: const InputDecoration(
+                            labelText: 'Points d\'élimination',
+                            suffixText: 'points',
+                            prefixIcon: Icon(
+                              Icons.speed_rounded,
+                              color: AppColors.primary,
                             ),
                           ),
+                          validator: (val) {
+                            final n = int.tryParse(val?.trim() ?? '');
+                            if (n == null || n <= 0) {
+                              return 'Entrez un nombre supérieur à 0';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            const Text(
+                              'Raccourcis : ',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            _buildLimitChip(101),
+                            const SizedBox(width: 8),
+                            _buildLimitChip(151),
+                            const SizedBox(width: 8),
+                            _buildLimitChip(201),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                ],
+                  const SizedBox(height: 16),
 
-                const SizedBox(height: 24),
-
-                // Start button
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 18),
+                  // Player count section card
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.88),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white, width: 1.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(
+                            0xFF25283B,
+                          ).withValues(alpha: 0.03),
+                          blurRadius: 14,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionHeader(
+                          icon: Icons.group_rounded,
+                          title: 'Nombre de joueurs',
+                          subtitle: 'Choisissez entre 2 et 4 joueurs.',
+                          color: AppColors.secondary,
+                        ),
+                        const SizedBox(height: 14),
+                        Row(
+                          children: [2, 3, 4].map((count) {
+                            final isSelected = _playerCount == count;
+                            return Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(14),
+                                  onTap: () => _onPlayerCountChanged(count),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 13,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? AppColors.primary
+                                          : const Color(0xFFF1F3F8),
+                                      borderRadius: BorderRadius.circular(14),
+                                      boxShadow: isSelected
+                                          ? [
+                                              BoxShadow(
+                                                color: AppColors.primary
+                                                    .withValues(alpha: 0.25),
+                                                blurRadius: 10,
+                                                offset: const Offset(0, 3),
+                                              ),
+                                            ]
+                                          : null,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        '$count joueurs',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: isSelected
+                                              ? FontWeight.w700
+                                              : FontWeight.w600,
+                                          color: isSelected
+                                              ? Colors.white
+                                              : AppColors.textSecondary,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
                   ),
-                  onPressed: _isSubmitting ? null : _startGame,
-                  child: _isSubmitting
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: AppColors.background,
+                  const SizedBox(height: 16),
+
+                  // Player names card
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.88),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white, width: 1.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(
+                            0xFF25283B,
+                          ).withValues(alpha: 0.03),
+                          blurRadius: 14,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionHeader(
+                          icon: Icons.badge_rounded,
+                          title: 'Noms des joueurs',
+                          subtitle: 'Personnalisez les noms avant de démarrer.',
+                          color: AppColors.primary,
+                        ),
+                        const SizedBox(height: 14),
+                        ...List.generate(_playerCount, (index) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: TextFormField(
+                              controller: _nameControllers[index],
+                              textCapitalization: TextCapitalization.words,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
+                              decoration: InputDecoration(
+                                labelText: 'Joueur ${index + 1}',
+                                prefixIcon: CircleAvatar(
+                                  radius: 12,
+                                  backgroundColor: const Color(0xFFE8EEFC),
+                                  child: Text(
+                                    '${index + 1}',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.primaryDark,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              validator: (val) {
+                                if (val == null || val.trim().isEmpty) {
+                                  return 'Le nom ne peut pas être vide';
+                                }
+                                return null;
+                              },
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+
+                  if (_generalError != null) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.dangerSurface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.danger.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.error_outline_rounded,
+                            color: AppColors.danger,
+                            size: 18,
                           ),
-                        )
-                      : const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.play_circle_filled_rounded, size: 22),
-                            SizedBox(width: 10),
-                            Text(
-                              'Commencer la partie',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _generalError!,
+                              style: const TextStyle(
+                                color: AppColors.danger,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                          ],
-                        ),
-                ),
-                const SizedBox(height: 20),
-              ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 24),
+
+                  // Start button
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 17),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
+                      shadowColor: Colors.transparent,
+                    ),
+                    onPressed: _isSubmitting ? null : _startGame,
+                    child: _isSubmitting
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.play_arrow_rounded, size: 22),
+                              SizedBox(width: 8),
+                              Text(
+                                'Commencer la partie',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
         ),
@@ -348,18 +441,19 @@ class _NewGameScreenState extends State<NewGameScreen> {
     required IconData icon,
     required String title,
     required String subtitle,
+    required Color color,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(icon, color: AppColors.gold, size: 20),
+            Icon(icon, color: color, size: 18),
             const SizedBox(width: 8),
             Text(
               title,
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary,
               ),
@@ -369,7 +463,7 @@ class _NewGameScreenState extends State<NewGameScreen> {
         const SizedBox(height: 2),
         Text(
           subtitle,
-          style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
         ),
       ],
     );
@@ -379,13 +473,17 @@ class _NewGameScreenState extends State<NewGameScreen> {
     final isSelected = _limitController.text.trim() == limit.toString();
     return ActionChip(
       label: Text('$limit pts'),
-      backgroundColor: isSelected ? AppColors.gold : AppColors.surfaceElevated,
+      backgroundColor: isSelected ? AppColors.primary : const Color(0xFFF1F3F8),
       labelStyle: TextStyle(
         fontSize: 11,
-        fontWeight: FontWeight.w700,
-        color: isSelected ? AppColors.background : AppColors.textSecondary,
+        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+        color: isSelected ? Colors.white : AppColors.textSecondary,
       ),
-      side: BorderSide(color: isSelected ? AppColors.gold : AppColors.border),
+      side: BorderSide(
+        color: isSelected
+            ? AppColors.primary
+            : Colors.white.withValues(alpha: 0.8),
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
       onPressed: () => _onQuickLimitSelected(limit),
     );

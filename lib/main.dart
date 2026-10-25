@@ -12,13 +12,13 @@ void main() async {
   // Initialize French locale data for date formatting
   await initializeDateFormatting('fr_FR', null);
 
-  // Set system UI overlay style for dark felt aesthetic
+  // Set system UI overlay style for clean minimal glassmorphism aesthetic
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Color(0xFF0B1712),
-      systemNavigationBarIconBrightness: Brightness.light,
+      statusBarIconBrightness: Brightness.dark,
+      systemNavigationBarColor: Color(0xFFF5F6FA),
+      systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
 
@@ -39,7 +39,7 @@ class RummyScoreApp extends StatelessWidget {
     return MaterialApp(
       title: 'Rummy Score',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
+      theme: AppTheme.lightTheme,
       home: HomeScreen(notifier: notifier),
     );
   }

@@ -19,25 +19,32 @@ class RoundHistoryView extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.style_outlined,
-                size: 54,
-                color: AppColors.textMuted.withValues(alpha: 0.5),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.7),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.style_outlined,
+                  size: 38,
+                  color: AppColors.textMuted,
+                ),
               ),
               const SizedBox(height: 12),
               const Text(
                 'Aucune manche enregistrée',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textSecondary,
+                  color: AppColors.textPrimary,
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               const Text(
                 'Appuyez sur "Ajouter une manche" pour commencer à saisir les scores.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: AppColors.textMuted),
+                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
               ),
             ],
           ),
@@ -58,7 +65,7 @@ class RoundHistoryView extends StatelessWidget {
               Text(
                 'Historique des manches (${game.rounds.length})',
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 15,
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
                 ),
@@ -67,22 +74,26 @@ class RoundHistoryView extends StatelessWidget {
                 TextButton.icon(
                   onPressed: onUndoLastRound,
                   icon: const Icon(
-                    Icons.undo,
-                    size: 16,
+                    Icons.undo_rounded,
+                    size: 15,
                     color: AppColors.warning,
                   ),
                   label: const Text(
                     'Annuler la dernière',
                     style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
                       color: AppColors.warning,
                     ),
                   ),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
+                      horizontal: 10,
                       vertical: 4,
+                    ),
+                    backgroundColor: AppColors.warningSurface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                 ),
@@ -110,16 +121,25 @@ class RoundHistoryView extends StatelessWidget {
         .firstOrNull;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isLatest ? AppColors.surfaceElevated : AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
+        color: isLatest
+            ? Colors.white.withValues(alpha: 0.95)
+            : Colors.white.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: isLatest
-              ? AppColors.gold.withValues(alpha: 0.5)
-              : AppColors.border,
+              ? AppColors.primary.withValues(alpha: 0.4)
+              : Colors.white.withValues(alpha: 0.8),
           width: isLatest ? 1.4 : 1.0,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF25283B).withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,15 +156,19 @@ class RoundHistoryView extends StatelessWidget {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
+                      color: isLatest
+                          ? const Color(0xFFE8EEFC)
+                          : const Color(0xFFF1F3F8),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       'Manche ${round.roundNumber}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.goldLight,
+                        fontWeight: FontWeight.w700,
+                        color: isLatest
+                            ? AppColors.primaryDark
+                            : AppColors.textPrimary,
                       ),
                     ),
                   ),
@@ -163,19 +187,19 @@ class RoundHistoryView extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(
-                      Icons.emoji_events,
+                      Icons.emoji_events_rounded,
                       size: 14,
-                      color: AppColors.gold,
+                      color: AppColors.primary,
                     ),
                     const SizedBox(width: 4),
                     ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 120),
+                      constraints: const BoxConstraints(maxWidth: 130),
                       child: Text(
                         winner.name,
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.goldLight,
+                          color: AppColors.primaryDark,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -186,7 +210,7 @@ class RoundHistoryView extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          // Scores grid/row for each participating player
+          // Scores wrap
           Wrap(
             spacing: 8,
             runSpacing: 6,
@@ -196,18 +220,14 @@ class RoundHistoryView extends StatelessWidget {
               final isWinner = player.id == round.winnerId;
 
               if (added == null && totalAfter == null) {
-                // Player was eliminated prior to this round
                 return Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.background.withValues(alpha: 0.5),
+                    color: const Color(0xFFF4F5F9),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: AppColors.border.withValues(alpha: 0.4),
-                    ),
                   ),
                   child: Text(
                     '${player.name}: —',
@@ -223,13 +243,13 @@ class RoundHistoryView extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: isWinner
-                      ? AppColors.gold.withValues(alpha: 0.15)
-                      : AppColors.background,
+                      ? const Color(0xFFE8EEFC)
+                      : const Color(0xFFF7F8FB),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isWinner
-                        ? AppColors.gold.withValues(alpha: 0.6)
-                        : AppColors.border,
+                        ? AppColors.primary.withValues(alpha: 0.3)
+                        : const Color(0xFFE9ECF2),
                   ),
                 ),
                 child: Row(
@@ -241,7 +261,7 @@ class RoundHistoryView extends StatelessWidget {
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: isWinner
-                            ? AppColors.goldLight
+                            ? AppColors.primaryDark
                             : AppColors.textSecondary,
                       ),
                     ),
@@ -251,10 +271,10 @@ class RoundHistoryView extends StatelessWidget {
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
                         color: isWinner
-                            ? AppColors.emeraldAccent
+                            ? AppColors.success
                             : (added != null && added > 0
-                                  ? AppColors.warning
-                                  : AppColors.textPrimary),
+                                  ? AppColors.textPrimary
+                                  : AppColors.textSecondary),
                       ),
                     ),
                     if (totalAfter != null) ...[
@@ -273,15 +293,16 @@ class RoundHistoryView extends StatelessWidget {
             }).toList(),
           ),
 
-          // Revanche / Elimination events if any
+          // Events (Revanche / Elimination)
           if (round.revancheEvents.isNotEmpty ||
               round.eliminationEvents.isNotEmpty) ...[
             const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.background.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(6),
+                color: const Color(0xFFF7F8FB),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFECEFF5)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,26 +311,46 @@ class RoundHistoryView extends StatelessWidget {
                     final p = game.players
                         .where((pl) => pl.id == entry.key)
                         .firstOrNull;
-                    return Text(
-                      '🛡️ Revanche : ${p?.name ?? 'Joueur'} a copié le score de ${entry.value} pts',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.gold,
-                      ),
+                    return Row(
+                      children: [
+                        const Icon(
+                          Icons.shield_rounded,
+                          size: 13,
+                          color: AppColors.secondaryDark,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          'Revanche : ${p?.name ?? 'Joueur'} a copié ${entry.value} pts',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.secondaryDark,
+                          ),
+                        ),
+                      ],
                     );
                   }),
                   ...round.eliminationEvents.map((playerId) {
                     final p = game.players
                         .where((pl) => pl.id == playerId)
                         .firstOrNull;
-                    return Text(
-                      '❌ Élimination définitive : ${p?.name ?? 'Joueur'}',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.danger,
-                      ),
+                    return Row(
+                      children: [
+                        const Icon(
+                          Icons.cancel_rounded,
+                          size: 13,
+                          color: AppColors.danger,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          'Élimination définitive : ${p?.name ?? 'Joueur'}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.danger,
+                          ),
+                        ),
+                      ],
                     );
                   }),
                 ],

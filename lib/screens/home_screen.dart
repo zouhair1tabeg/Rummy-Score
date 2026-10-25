@@ -3,6 +3,7 @@ import '../constants/app_colors.dart';
 import '../models/game.dart';
 import '../state/game_notifier.dart';
 import '../utils/date_formatter.dart';
+import '../widgets/glass_background.dart';
 import 'history_screen.dart';
 import 'new_game_screen.dart';
 import 'rules_screen.dart';
@@ -16,58 +17,60 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: ListenableBuilder(
-          listenable: notifier,
-          builder: (context, _) {
-            if (notifier.isLoading) {
-              return const Center(
-                child: CircularProgressIndicator(color: AppColors.gold),
-              );
-            }
+      body: GlassBackground(
+        child: SafeArea(
+          child: ListenableBuilder(
+            listenable: notifier,
+            builder: (context, _) {
+              if (notifier.isLoading) {
+                return const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                );
+              }
 
-            final activeGame = notifier.activeGame;
-            final recentGames = notifier.allGames.take(3).toList();
+              final activeGame = notifier.activeGame;
+              final recentGames = notifier.allGames.take(3).toList();
 
-            return RefreshIndicator(
-              color: AppColors.gold,
-              backgroundColor: AppColors.surfaceElevated,
-              onRefresh: () => notifier.refreshGames(),
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 10),
-                    _buildHeader(context),
-                    const SizedBox(height: 24),
+              return RefreshIndicator(
+                color: AppColors.primary,
+                backgroundColor: Colors.white,
+                onRefresh: () => notifier.refreshGames(),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 12),
+                      _buildHeader(context),
+                      const SizedBox(height: 24),
 
-                    // Active in-progress game banner (if any)
-                    if (activeGame != null && !activeGame.isCompleted) ...[
-                      _buildActiveGameCard(context, activeGame),
-                      const SizedBox(height: 20),
+                      // Active in-progress game card
+                      if (activeGame != null && !activeGame.isCompleted) ...[
+                        _buildActiveGameCard(context, activeGame),
+                        const SizedBox(height: 18),
+                      ],
+
+                      // Prominent "Nouvelle partie" button
+                      _buildNewGameButton(context),
+                      const SizedBox(height: 24),
+
+                      // Quick action cards
+                      _buildQuickActionsRow(context),
+                      const SizedBox(height: 26),
+
+                      // Recent games section
+                      _buildRecentGamesSection(context, recentGames),
+                      const SizedBox(height: 24),
                     ],
-
-                    // Prominent "Nouvelle partie" button
-                    _buildNewGameButton(context),
-                    const SizedBox(height: 28),
-
-                    // Quick Actions Row
-                    _buildQuickActionsRow(context),
-                    const SizedBox(height: 28),
-
-                    // Recent games section
-                    _buildRecentGamesSection(context, recentGames),
-                    const SizedBox(height: 24),
-                  ],
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -77,40 +80,51 @@ class HomeScreen extends StatelessWidget {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppColors.surfaceElevated,
+            color: Colors.white.withValues(alpha: 0.9),
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.gold, width: 2),
+            border: Border.all(color: Colors.white, width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: AppColors.gold.withValues(alpha: 0.25),
-                blurRadius: 18,
-                spreadRadius: 2,
+                color: AppColors.primary.withValues(alpha: 0.12),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
-          child: const Icon(
-            Icons.style_rounded,
-            size: 40,
-            color: AppColors.gold,
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFE6EEFC), Color(0xFFF1EEFC)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.style_rounded,
+              size: 32,
+              color: AppColors.primary,
+            ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         const Text(
           'Rummy Score',
           style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.w900,
+            fontSize: 28,
+            fontWeight: FontWeight.w800,
             color: AppColors.textPrimary,
-            letterSpacing: 0.5,
+            letterSpacing: -0.5,
           ),
         ),
         const SizedBox(height: 4),
         const Text(
-          'Compteur & feuille de marque de Rami',
+          'Compteur & feuille de marque élégante',
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: FontWeight.w500,
             color: AppColors.textSecondary,
           ),
@@ -122,24 +136,24 @@ class HomeScreen extends StatelessWidget {
   Widget _buildNewGameButton(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         gradient: const LinearGradient(
-          colors: [AppColors.gold, Color(0xFFC59B27)],
+          colors: [AppColors.primary, Color(0xFF8276D9)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.gold.withValues(alpha: 0.35),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
+            color: AppColors.primary.withValues(alpha: 0.28),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -148,23 +162,19 @@ class HomeScreen extends StatelessWidget {
             );
           },
           child: const Padding(
-            padding: EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+            padding: EdgeInsets.symmetric(vertical: 17, horizontal: 20),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.add_circle_outline,
-                  size: 26,
-                  color: AppColors.background,
-                ),
-                SizedBox(width: 12),
+                Icon(Icons.add_circle_outline, size: 22, color: Colors.white),
+                SizedBox(width: 10),
                 Text(
                   'Nouvelle partie',
                   style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.background,
-                    letterSpacing: 0.4,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 0.2,
                   ),
                 ),
               ],
@@ -179,14 +189,14 @@ class HomeScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surfaceElevated,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.emeraldAccent, width: 1.5),
+        color: Colors.white.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: AppColors.emeraldAccent.withValues(alpha: 0.15),
-            blurRadius: 12,
-            offset: const Offset(0, 3),
+            color: const Color(0xFF25283B).withValues(alpha: 0.05),
+            blurRadius: 18,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -199,10 +209,10 @@ class HomeScreen extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    width: 10,
-                    height: 10,
+                    width: 8,
+                    height: 8,
                     decoration: const BoxDecoration(
-                      color: AppColors.emeraldAccent,
+                      color: AppColors.success,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -210,9 +220,9 @@ class HomeScreen extends StatelessWidget {
                   const Text(
                     'Partie en cours',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.emeraldAccent,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ],
@@ -220,7 +230,7 @@ class HomeScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: const Color(0xFFF1F3F8),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -246,10 +256,14 @@ class HomeScreen extends StatelessWidget {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: p.isEliminated
+                      ? const Color(0xFFF7F8FA)
+                      : const Color(0xFFF0F4FD),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: p.isEliminated ? AppColors.danger : AppColors.border,
+                    color: p.isEliminated
+                        ? const Color(0xFFE5E7EB)
+                        : AppColors.primary.withValues(alpha: 0.2),
                   ),
                 ),
                 child: Text(
@@ -259,7 +273,7 @@ class HomeScreen extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: p.isEliminated
                         ? AppColors.textMuted
-                        : AppColors.textPrimary,
+                        : AppColors.primaryDark,
                   ),
                 ),
               );
@@ -270,9 +284,12 @@ class HomeScreen extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryLight,
+                backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onPressed: () {
                 Navigator.of(context).push(
@@ -284,7 +301,7 @@ class HomeScreen extends StatelessWidget {
               icon: const Icon(Icons.play_arrow_rounded, size: 20),
               label: const Text(
                 'Reprendre la partie',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
               ),
             ),
           ),
@@ -302,6 +319,7 @@ class HomeScreen extends StatelessWidget {
             icon: Icons.history_rounded,
             title: 'Historique',
             subtitle: '${notifier.allGames.length} partie(s)',
+            accentColor: AppColors.primary,
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -318,6 +336,7 @@ class HomeScreen extends StatelessWidget {
             icon: Icons.menu_book_rounded,
             title: 'Règles du jeu',
             subtitle: 'Revanche & 151 pts',
+            accentColor: AppColors.secondary,
             onTap: () {
               Navigator.of(
                 context,
@@ -334,26 +353,41 @@ class HomeScreen extends StatelessWidget {
     required IconData icon,
     required String title,
     required String subtitle,
+    required Color accentColor,
     required VoidCallback onTap,
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+        color: Colors.white.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white, width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF25283B).withValues(alpha: 0.03),
+            blurRadius: 14,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(18),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+            padding: const EdgeInsets.all(14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(icon, color: AppColors.gold, size: 24),
-                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: accentColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, color: accentColor, size: 20),
+                ),
+                const SizedBox(height: 10),
                 Text(
                   title,
                   style: const TextStyle(
@@ -367,7 +401,7 @@ class HomeScreen extends StatelessWidget {
                   subtitle,
                   style: const TextStyle(
                     fontSize: 11,
-                    color: AppColors.textMuted,
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ],
@@ -386,9 +420,9 @@ class HomeScreen extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border),
+          color: Colors.white.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.white),
         ),
         child: const Center(
           child: Text(
@@ -438,11 +472,19 @@ class HomeScreen extends StatelessWidget {
             return Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.border),
+                color: Colors.white.withValues(alpha: 0.85),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF25283B).withValues(alpha: 0.02),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: InkWell(
+                borderRadius: BorderRadius.circular(16),
                 onTap: () async {
                   await notifier.loadGame(game.id);
                   if (context.mounted) {
@@ -456,17 +498,17 @@ class HomeScreen extends StatelessWidget {
                 child: Row(
                   children: [
                     CircleAvatar(
-                      radius: 18,
+                      radius: 17,
                       backgroundColor: game.isCompleted
-                          ? AppColors.primaryLight
-                          : AppColors.surfaceElevated,
+                          ? const Color(0xFFE8EEFC)
+                          : const Color(0xFFF1F3F8),
                       child: Icon(
                         game.isCompleted
-                            ? Icons.emoji_events
-                            : Icons.play_arrow,
+                            ? Icons.emoji_events_rounded
+                            : Icons.play_arrow_rounded,
                         size: 18,
                         color: game.isCompleted
-                            ? AppColors.gold
+                            ? AppColors.primary
                             : AppColors.textSecondary,
                       ),
                     ),
@@ -482,7 +524,7 @@ class HomeScreen extends StatelessWidget {
                                       : 'Partie terminée')
                                 : 'Partie en cours (${game.rounds.length} manches)',
                             style: const TextStyle(
-                              fontSize: 14,
+                              fontSize: 13,
                               fontWeight: FontWeight.w700,
                               color: AppColors.textPrimary,
                             ),
@@ -492,13 +534,17 @@ class HomeScreen extends StatelessWidget {
                             '${game.players.length} joueurs • $dateStr',
                             style: const TextStyle(
                               fontSize: 11,
-                              color: AppColors.textMuted,
+                              color: AppColors.textSecondary,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.textMuted,
+                      size: 20,
+                    ),
                   ],
                 ),
               ),

@@ -28,76 +28,75 @@ class PlayerScoreCard extends StatelessWidget {
     final isWarning =
         !isDanger && player.cumulativeScore >= (eliminationLimit * 0.75);
 
-    Color cardBorderColor = AppColors.border;
-    Color scoreColor = AppColors.textPrimary;
-    Color progressColor = AppColors.emeraldAccent;
+    Color cardBorderColor = Colors.white.withValues(alpha: 0.9);
+    Color progressColor = AppColors.primary;
+    Color cardBg = Colors.white.withValues(alpha: 0.88);
 
     if (player.isEliminated) {
-      cardBorderColor = AppColors.border.withValues(alpha: 0.5);
-      scoreColor = AppColors.textMuted;
-      progressColor = AppColors.danger;
+      cardBg = Colors.white.withValues(alpha: 0.55);
+      cardBorderColor = AppColors.glassBorderSubtle;
+      progressColor = AppColors.danger.withValues(alpha: 0.4);
     } else if (isWinner) {
-      cardBorderColor = AppColors.gold;
-      scoreColor = AppColors.gold;
-      progressColor = AppColors.gold;
+      cardBg = const Color(0xFFF7F8FE);
+      cardBorderColor = AppColors.primary.withValues(alpha: 0.5);
+      progressColor = AppColors.primary;
     } else if (isDanger) {
-      cardBorderColor = AppColors.danger;
-      scoreColor = AppColors.danger;
+      cardBg = const Color(0xFFFEF7F7);
+      cardBorderColor = AppColors.danger.withValues(alpha: 0.45);
       progressColor = AppColors.danger;
     } else if (isWarning) {
-      cardBorderColor = AppColors.warning;
-      scoreColor = AppColors.warning;
+      cardBorderColor = AppColors.warning.withValues(alpha: 0.4);
       progressColor = AppColors.warning;
     }
 
     return Container(
       decoration: BoxDecoration(
-        color: player.isEliminated
-            ? AppColors.surface.withValues(alpha: 0.6)
-            : (isWinner ? AppColors.surfaceElevated : AppColors.surface),
-        borderRadius: BorderRadius.circular(16),
+        color: cardBg,
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: cardBorderColor,
-          width: isWinner || isDanger ? 1.6 : 1.0,
+          width: isWinner || isDanger ? 1.4 : 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+            color: const Color(0xFF25283B).withValues(alpha: 0.04),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.all(14.0),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Top row: Player name, rank & status badge
+                // Top row: Avatar rank + Player name + status badge
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     CircleAvatar(
-                      radius: 14,
+                      radius: 12,
                       backgroundColor: isWinner
-                          ? AppColors.gold
+                          ? AppColors.primary
                           : (player.isEliminated
-                                ? AppColors.surfaceLight
-                                : AppColors.primaryLight),
+                                ? const Color(0xFFE5E7EB)
+                                : const Color(0xFFE8EEFC)),
                       child: Text(
                         '$rank',
                         style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
                           color: isWinner
-                              ? AppColors.background
-                              : AppColors.textPrimary,
+                              ? Colors.white
+                              : (player.isEliminated
+                                    ? AppColors.textMuted
+                                    : AppColors.primaryDark),
                         ),
                       ),
                     ),
@@ -106,7 +105,7 @@ class PlayerScoreCard extends StatelessWidget {
                       child: Text(
                         player.name,
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: player.isEliminated
                               ? AppColors.textMuted
@@ -119,13 +118,12 @@ class PlayerScoreCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     _buildStatusBadge(),
                   ],
                 ),
-                const SizedBox(height: 10),
 
-                // Score Display
+                // Middle: Score Display
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
@@ -133,64 +131,72 @@ class PlayerScoreCard extends StatelessWidget {
                     Text(
                       '${player.cumulativeScore}',
                       style: TextStyle(
-                        fontSize: 28,
+                        fontSize: 26,
                         fontWeight: FontWeight.w800,
-                        color: scoreColor,
+                        color: player.isEliminated
+                            ? AppColors.textMuted
+                            : (isDanger
+                                  ? AppColors.danger
+                                  : AppColors.textPrimary),
                         letterSpacing: -0.5,
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 5),
                     Text(
-                      '/ $eliminationLimit pts',
+                      '/ $eliminationLimit',
                       style: const TextStyle(
-                        fontSize: 13,
+                        fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textMuted,
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
 
-                // Progress Bar
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 6,
-                    backgroundColor: AppColors.surfaceElevated,
-                    valueColor: AlwaysStoppedAnimation<Color>(progressColor),
-                  ),
-                ),
-
-                // Revanche indicator if applicable
-                if (player.revancheUsed) ...[
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.shield_outlined,
-                        size: 14,
-                        color: AppColors.gold,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          player.revancheScoreTaken != null
-                              ? 'Revanche utilisée (${player.revancheScoreTaken} pts)'
-                              : 'Revanche utilisée',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.gold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                // Bottom: Progress bar & Revanche indicator
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        minHeight: 5,
+                        backgroundColor: const Color(0xFFE9ECF2),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          progressColor,
                         ),
                       ),
+                    ),
+                    if (player.revancheUsed) ...[
+                      const SizedBox(height: 5),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.shield_outlined,
+                            size: 11,
+                            color: AppColors.secondaryDark,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              player.revancheScoreTaken != null
+                                  ? 'Revanche (${player.revancheScoreTaken} pts)'
+                                  : 'Revanche',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.secondaryDark,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
-                  ),
-                ],
+                  ],
+                ),
               ],
             ),
           ),
@@ -202,18 +208,17 @@ class PlayerScoreCard extends StatelessWidget {
   Widget _buildStatusBadge() {
     if (isWinner) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
         decoration: BoxDecoration(
-          color: AppColors.gold.withValues(alpha: 0.2),
+          color: const Color(0xFFE8EEFC),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.gold, width: 1),
         ),
         child: const Text(
           '👑 Vainqueur',
           style: TextStyle(
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: FontWeight.w700,
-            color: AppColors.goldLight,
+            color: AppColors.primaryDark,
           ),
         ),
       );
@@ -221,20 +226,19 @@ class PlayerScoreCard extends StatelessWidget {
 
     if (player.isEliminated) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
         decoration: BoxDecoration(
-          color: AppColors.dangerSurface,
+          color: const Color(0xFFF1F2F6),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.danger.withValues(alpha: 0.6)),
         ),
         child: Text(
           player.eliminatedAtRound != null
-              ? 'Éliminé (M${player.eliminatedAtRound})'
+              ? 'M${player.eliminatedAtRound}'
               : 'Éliminé',
           style: const TextStyle(
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: FontWeight.w600,
-            color: AppColors.danger,
+            color: AppColors.textMuted,
           ),
         ),
       );
@@ -242,16 +246,15 @@ class PlayerScoreCard extends StatelessWidget {
 
     if (player.cumulativeScore >= eliminationLimit) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
         decoration: BoxDecoration(
           color: AppColors.dangerSurface,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.danger),
         ),
         child: const Text(
-          '⚠️ À éliminer',
+          '⚠️ Éliminé',
           style: TextStyle(
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: FontWeight.w700,
             color: AppColors.danger,
           ),
@@ -260,18 +263,17 @@ class PlayerScoreCard extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
         color: AppColors.successSurface,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.success.withValues(alpha: 0.6)),
       ),
       child: const Text(
         'En jeu',
         style: TextStyle(
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: FontWeight.w600,
-          color: AppColors.emeraldAccent,
+          color: AppColors.success,
         ),
       ),
     );

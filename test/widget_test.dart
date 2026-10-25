@@ -24,7 +24,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: AppTheme.darkTheme,
+        theme: AppTheme.lightTheme,
         home: HomeScreen(notifier: notifier),
       ),
     );
@@ -47,7 +47,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: AppTheme.darkTheme,
+        theme: AppTheme.lightTheme,
         home: NewGameScreen(notifier: notifier),
       ),
     );
@@ -93,7 +93,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          theme: AppTheme.darkTheme,
+          theme: AppTheme.lightTheme,
           home: ScoreboardScreen(notifier: notifier),
         ),
       );
@@ -110,7 +110,7 @@ void main() {
 
   testWidgets('RulesScreen renders all game rules', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(theme: AppTheme.darkTheme, home: const RulesScreen()),
+      MaterialApp(theme: AppTheme.lightTheme, home: const RulesScreen()),
     );
 
     await tester.pumpAndSettle();

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../models/game.dart';
 import '../models/player.dart';
+import '../widgets/glass_background.dart';
 
 class AddRoundScreen extends StatefulWidget {
   final Game game;
@@ -47,7 +48,6 @@ class _AddRoundScreenState extends State<AddRoundScreen> {
   void _onSelectWinner(String playerId) {
     setState(() {
       _selectedWinnerId = playerId;
-      // Winner score is always 0
       _scoreControllers[playerId]?.text = '0';
       _validationError = null;
     });
@@ -124,138 +124,146 @@ class _AddRoundScreenState extends State<AddRoundScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text('Ajouter la manche $roundNumber')),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Instruction banner
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceElevated,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.info_outline, color: AppColors.gold, size: 22),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Sélectionnez le vainqueur (0 pt). Entrez ensuite les points restants en main des autres joueurs.',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Player cards with winner toggle and score inputs
-                Text(
-                  'Joueurs actifs (${activePlayers.length})',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                ...activePlayers.map((player) {
-                  return _buildPlayerInputCard(player);
-                }),
-
-                const SizedBox(height: 16),
-
-                // Live Preview Section
-                _buildLivePreview(activePlayers),
-
-                if (_validationError != null) ...[
-                  const SizedBox(height: 16),
+      body: GlassBackground(
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Instruction banner
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppColors.dangerSurface,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.danger),
+                      color: Colors.white.withValues(alpha: 0.85),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white),
                     ),
-                    child: Row(
+                    child: const Row(
                       children: [
-                        const Icon(
-                          Icons.error_outline,
-                          color: AppColors.danger,
+                        Icon(
+                          Icons.info_outline_rounded,
+                          color: AppColors.primary,
                           size: 20,
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            _validationError!,
-                            style: const TextStyle(
-                              color: AppColors.danger,
+                            'Sélectionnez le vainqueur (0 pt). Entrez ensuite les points restants des autres joueurs.',
+                            style: TextStyle(
                               fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
                             ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                ],
+                  const SizedBox(height: 18),
 
-                const SizedBox(height: 24),
-
-                // Actions: Cancel & Confirm
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                        onPressed: _isSubmitting
-                            ? null
-                            : () => Navigator.of(context).pop(),
-                        child: const Text('Annuler'),
-                      ),
+                  Text(
+                    'Joueurs actifs (${activePlayers.length})',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      flex: 2,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  const SizedBox(height: 10),
+
+                  ...activePlayers.map((player) {
+                    return _buildPlayerInputCard(player);
+                  }),
+
+                  const SizedBox(height: 16),
+
+                  // Live Preview Card
+                  _buildLivePreview(activePlayers),
+
+                  if (_validationError != null) ...[
+                    const SizedBox(height: 14),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.dangerSurface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.danger.withValues(alpha: 0.3),
                         ),
-                        onPressed: _isSubmitting ? null : _submitRound,
-                        child: _isSubmitting
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: AppColors.background,
-                                ),
-                              )
-                            : const Text(
-                                'Valider la manche',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.error_outline_rounded,
+                            color: AppColors.danger,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _validationError!,
+                              style: const TextStyle(
+                                color: AppColors.danger,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
                               ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 20),
-              ],
+
+                  const SizedBox(height: 24),
+
+                  // Actions
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          onPressed: _isSubmitting
+                              ? null
+                              : () => Navigator.of(context).pop(),
+                          child: const Text('Annuler'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          onPressed: _isSubmitting ? null : _submitRound,
+                          child: _isSubmitting
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text(
+                                  'Valider la manche',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
         ),
@@ -268,15 +276,26 @@ class _AddRoundScreenState extends State<AddRoundScreen> {
     final controller = _scoreControllers[player.id];
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isWinner ? AppColors.surfaceElevated : AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        color: isWinner
+            ? const Color(0xFFF0F4FD)
+            : Colors.white.withValues(alpha: 0.88),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isWinner ? AppColors.gold : AppColors.border,
-          width: isWinner ? 1.6 : 1.0,
+          color: isWinner
+              ? AppColors.primary.withValues(alpha: 0.45)
+              : Colors.white,
+          width: isWinner ? 1.4 : 1.0,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF25283B).withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,10 +309,10 @@ class _AddRoundScreenState extends State<AddRoundScreen> {
                     Text(
                       player.name,
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: isWinner
-                            ? AppColors.goldLight
+                            ? AppColors.primaryDark
                             : AppColors.textPrimary,
                       ),
                     ),
@@ -302,48 +321,44 @@ class _AddRoundScreenState extends State<AddRoundScreen> {
                       'Score actuel : ${player.cumulativeScore} pts',
                       style: const TextStyle(
                         fontSize: 12,
-                        color: AppColors.textMuted,
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
                 ),
               ),
-              // Winner button
+              // Winner toggle pill
               InkWell(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(12),
                 onTap: () => _onSelectWinner(player.id),
-                child: Container(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
                     color: isWinner
-                        ? AppColors.gold
-                        : AppColors.surfaceElevated,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: isWinner ? AppColors.gold : AppColors.border,
-                    ),
+                        ? AppColors.primary
+                        : const Color(0xFFF1F3F8),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        Icons.emoji_events,
-                        size: 16,
-                        color: isWinner
-                            ? AppColors.background
-                            : AppColors.textMuted,
+                        Icons.emoji_events_rounded,
+                        size: 15,
+                        color: isWinner ? Colors.white : AppColors.textMuted,
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 5),
                       Text(
                         isWinner ? 'Vainqueur (0 pt)' : 'Désigner vainqueur',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                           color: isWinner
-                              ? AppColors.background
+                              ? Colors.white
                               : AppColors.textSecondary,
                         ),
                       ),
@@ -366,10 +381,10 @@ class _AddRoundScreenState extends State<AddRoundScreen> {
               decoration: const InputDecoration(
                 labelText: 'Points marqués cette manche',
                 hintText: 'Ex: 25',
-                prefixIcon: Icon(Icons.add, color: AppColors.gold),
+                prefixIcon: Icon(Icons.add, color: AppColors.primary),
                 suffixText: 'pts',
               ),
-              onChanged: (_) => setState(() {}), // Update live preview
+              onChanged: (_) => setState(() {}),
               validator: (val) {
                 if (isWinner) return null;
                 final text = val?.trim() ?? '';
@@ -393,16 +408,16 @@ class _AddRoundScreenState extends State<AddRoundScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surfaceElevated,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderLight),
+        color: Colors.white.withValues(alpha: 0.88),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Row(
             children: [
-              Icon(Icons.preview_rounded, size: 18, color: AppColors.gold),
+              Icon(Icons.preview_rounded, size: 16, color: AppColors.primary),
               SizedBox(width: 8),
               Text(
                 'Aperçu des nouveaux scores cumulés',
@@ -433,8 +448,8 @@ class _AddRoundScreenState extends State<AddRoundScreen> {
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: isWinner
-                            ? AppColors.goldLight
-                            : AppColors.textSecondary,
+                            ? AppColors.primaryDark
+                            : AppColors.textPrimary,
                       ),
                     ),
                   ),
@@ -442,27 +457,27 @@ class _AddRoundScreenState extends State<AddRoundScreen> {
                     '${player.cumulativeScore} + $added = ',
                     style: const TextStyle(
                       fontSize: 12,
-                      color: AppColors.textMuted,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                   Text(
                     '$newTotal pts',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       fontWeight: FontWeight.w800,
                       color: isAtOrOverLimit
                           ? AppColors.danger
                           : (isWinner
-                                ? AppColors.emeraldAccent
+                                ? AppColors.success
                                 : AppColors.textPrimary),
                     ),
                   ),
                   if (isAtOrOverLimit) ...[
                     const SizedBox(width: 6),
                     const Icon(
-                      Icons.warning,
+                      Icons.warning_amber_rounded,
                       color: AppColors.danger,
-                      size: 16,
+                      size: 15,
                     ),
                   ],
                 ],
