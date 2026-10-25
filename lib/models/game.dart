@@ -8,6 +8,7 @@ class Game {
   final DateTime createdAt;
   final DateTime? completedAt;
   final int eliminationLimit;
+  final int initialPlayerCount;
   final List<Player> players;
   final List<Round> rounds;
   final GameStatus status;
@@ -19,6 +20,7 @@ class Game {
     required this.createdAt,
     this.completedAt,
     this.eliminationLimit = 151,
+    required this.initialPlayerCount,
     required this.players,
     this.rounds = const [],
     this.status = GameStatus.inProgress,
@@ -51,6 +53,7 @@ class Game {
     DateTime? createdAt,
     DateTime? completedAt,
     int? eliminationLimit,
+    int? initialPlayerCount,
     List<Player>? players,
     List<Round>? rounds,
     GameStatus? status,
@@ -62,6 +65,7 @@ class Game {
       createdAt: createdAt ?? this.createdAt,
       completedAt: completedAt ?? this.completedAt,
       eliminationLimit: eliminationLimit ?? this.eliminationLimit,
+      initialPlayerCount: initialPlayerCount ?? this.initialPlayerCount,
       players: players ?? this.players,
       rounds: rounds ?? this.rounds,
       status: status ?? this.status,
@@ -86,6 +90,7 @@ class Game {
       'createdAt': createdAt.toIso8601String(),
       'completedAt': completedAt?.toIso8601String(),
       'eliminationLimit': eliminationLimit,
+      'initialPlayerCount': initialPlayerCount,
       'players': players.map((p) => p.toJson()).toList(),
       'rounds': rounds.map((r) => r.toJson()).toList(),
       'status': status.name,
@@ -95,6 +100,10 @@ class Game {
   }
 
   factory Game.fromJson(Map<String, dynamic> json) {
+    final playersList = (json['players'] as List<dynamic>)
+        .map((p) => Player.fromJson(p as Map<String, dynamic>))
+        .toList();
+
     return Game(
       id: json['id'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
@@ -102,9 +111,9 @@ class Game {
           ? DateTime.parse(json['completedAt'] as String)
           : null,
       eliminationLimit: (json['eliminationLimit'] as num?)?.toInt() ?? 151,
-      players: (json['players'] as List<dynamic>)
-          .map((p) => Player.fromJson(p as Map<String, dynamic>))
-          .toList(),
+      initialPlayerCount:
+          (json['initialPlayerCount'] as num?)?.toInt() ?? playersList.length,
+      players: playersList,
       rounds:
           (json['rounds'] as List<dynamic>?)
               ?.map((r) => Round.fromJson(r as Map<String, dynamic>))

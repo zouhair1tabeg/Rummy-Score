@@ -60,7 +60,10 @@ class RulesScreen extends StatelessWidget {
                   accentColor: AppColors.secondary,
                   highlight: true,
                   content:
-                      'Chaque joueur ne peut utiliser la Revanche qu\'une seule fois par partie.\n\n'
+                      'Conditions obligatoires :\n'
+                      '• La partie doit avoir été créée avec exactement 4 joueurs.\n'
+                      '• Il doit rester au moins 3 joueurs actifs au moment de l\'élimination (joueur concerné inclus).\n'
+                      '• Chaque joueur ne peut utiliser la Revanche qu\'une seule fois par partie.\n\n'
                       'Quand un joueur choisit la Revanche :\n'
                       '1. L\'application recherche le score cumulé le plus élevé parmi les AUTRES joueurs encore actifs.\n'
                       '2. Le score du joueur est remplacé par ce score le plus élevé.\n'

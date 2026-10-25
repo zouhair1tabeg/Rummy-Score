@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rummy_score/logic/game_engine.dart';
+import 'package:rummy_score/models/game.dart';
 import 'package:rummy_score/models/game_state_snapshot.dart';
 import 'package:rummy_score/services/storage_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -236,38 +237,40 @@ void main() {
     // 9. Revanche cannot be used twice by the same player
     test('9. Revanche cannot be used twice by the same player', () {
       var game = GameEngine.createNewGame(
-        playerNames: ['User 1', 'User 2', 'User 3'],
+        playerNames: ['User 1', 'User 2', 'User 3', 'User 4'],
         eliminationLimit: 151,
       );
 
       final p1 = game.players[0];
       final p2 = game.players[1];
       final p3 = game.players[2];
+      final p4 = game.players[3];
 
-      // Round 1: p3 reaches 151
+      // Round 1: p4 reaches 151 (4 active players)
       game = GameEngine.commitRound(
         game: game,
         winnerId: p1.id,
-        scoresToAdd: {p2.id: 50, p3.id: 151},
+        scoresToAdd: {p2.id: 50, p3.id: 60, p4.id: 151},
       );
 
-      // p3 takes Revanche (copies p2's score = 50)
-      game = GameEngine.applyRevanche(game, p3.id);
+      // p4 takes Revanche (copies p3's score = 60)
+      expect(GameEngine.canTakeRevanche(game, p4.id), isTrue);
+      game = GameEngine.applyRevanche(game, p4.id);
       expect(
-        game.players.firstWhere((p) => p.id == p3.id).revancheUsed,
+        game.players.firstWhere((p) => p.id == p4.id).revancheUsed,
         isTrue,
       );
 
-      // Round 2: p3 reaches 151 again
+      // Round 2: p4 reaches 151 again
       game = GameEngine.commitRound(
         game: game,
         winnerId: p1.id,
-        scoresToAdd: {p2.id: 20, p3.id: 105}, // 50 + 105 = 155
+        scoresToAdd: {p2.id: 20, p3.id: 25, p4.id: 95}, // 60 + 95 = 155
       );
 
-      // Verify p3 cannot take Revanche again
-      expect(GameEngine.canTakeRevanche(game, p3.id), isFalse);
-      expect(() => GameEngine.applyRevanche(game, p3.id), throwsStateError);
+      // Verify p4 cannot take Revanche again
+      expect(GameEngine.canTakeRevanche(game, p4.id), isFalse);
+      expect(() => GameEngine.applyRevanche(game, p4.id), throwsStateError);
     });
 
     // 10. Eliminated players cannot receive points in subsequent rounds
@@ -344,32 +347,33 @@ void main() {
     // 12. Undo restores the complete previous state
     test('12. Undo restores the complete previous state', () {
       var game = GameEngine.createNewGame(
-        playerNames: ['User 1', 'User 2', 'User 3'],
+        playerNames: ['User 1', 'User 2', 'User 3', 'User 4'],
         eliminationLimit: 151,
       );
 
       final p1 = game.players[0];
       final p2 = game.players[1];
       final p3 = game.players[2];
+      final p4 = game.players[3];
 
       // Round 1
       game = GameEngine.commitRound(
         game: game,
         winnerId: p1.id,
-        scoresToAdd: {p2.id: 30, p3.id: 40},
+        scoresToAdd: {p2.id: 30, p3.id: 40, p4.id: 20},
       );
 
-      // Round 2 causes p3 to reach 151 and take Revanche
+      // Round 2 causes p4 to reach 151 and take Revanche
       game = GameEngine.commitRound(
         game: game,
         winnerId: p1.id,
-        scoresToAdd: {p2.id: 20, p3.id: 120},
+        scoresToAdd: {p2.id: 20, p3.id: 10, p4.id: 135},
       );
-      game = GameEngine.applyRevanche(game, p3.id);
+      game = GameEngine.applyRevanche(game, p4.id);
 
       expect(game.rounds.length, 2);
       expect(
-        game.players.firstWhere((p) => p.id == p3.id).revancheUsed,
+        game.players.firstWhere((p) => p.id == p4.id).revancheUsed,
         isTrue,
       );
 
@@ -381,12 +385,14 @@ void main() {
       final restoredP1 = game.players.firstWhere((p) => p.id == p1.id);
       final restoredP2 = game.players.firstWhere((p) => p.id == p2.id);
       final restoredP3 = game.players.firstWhere((p) => p.id == p3.id);
+      final restoredP4 = game.players.firstWhere((p) => p.id == p4.id);
 
       expect(restoredP1.cumulativeScore, 0);
       expect(restoredP2.cumulativeScore, 30);
       expect(restoredP3.cumulativeScore, 40);
-      expect(restoredP3.revancheUsed, isFalse);
-      expect(restoredP3.isEliminated, isFalse);
+      expect(restoredP4.cumulativeScore, 20);
+      expect(restoredP4.revancheUsed, isFalse);
+      expect(restoredP4.isEliminated, isFalse);
     });
 
     // 13. Saved games can be restored with their scores, history, and Revanche flags intact
@@ -491,14 +497,18 @@ void main() {
       'Decisions are required: cannot start new round while pending elimination exists',
       () {
         var game = GameEngine.createNewGame(
-          playerNames: ['P1', 'P2', 'P3'],
+          playerNames: ['P1', 'P2', 'P3', 'P4'],
           eliminationLimit: 151,
         );
 
         game = GameEngine.commitRound(
           game: game,
           winnerId: game.players[0].id,
-          scoresToAdd: {game.players[1].id: 155, game.players[2].id: 40},
+          scoresToAdd: {
+            game.players[1].id: 155,
+            game.players[2].id: 40,
+            game.players[3].id: 50,
+          },
         );
 
         expect(game.hasPendingDecisions, isTrue);
@@ -509,6 +519,218 @@ void main() {
         game = GameEngine.applyRevanche(game, game.players[1].id);
         expect(game.hasPendingDecisions, isFalse);
         expect(GameEngine.canAddRound(game), isTrue);
+      },
+    );
+  });
+
+  group('Exact Revanche Rules Specifications', () {
+    test(
+      'Case 1: Game created with 4 players allows Revanche when 4 players are active',
+      () {
+        var game = GameEngine.createNewGame(
+          playerNames: ['User 1', 'User 2', 'User 3', 'User 4'],
+          eliminationLimit: 151,
+        );
+
+        final p1 = game.players[0];
+        final p2 = game.players[1];
+        final p3 = game.players[2];
+        final p4 = game.players[3];
+
+        game = GameEngine.commitRound(
+          game: game,
+          winnerId: p1.id,
+          scoresToAdd: {p2.id: 40, p3.id: 70, p4.id: 155},
+        );
+
+        // 4 players active (p1, p2, p3, and p4 who triggered elimination)
+        expect(game.initialPlayerCount, 4);
+        expect(game.activePlayers.length, 4);
+        expect(GameEngine.canTakeRevanche(game, p4.id), isTrue);
+
+        game = GameEngine.applyRevanche(game, p4.id);
+        expect(
+          game.players.firstWhere((p) => p.id == p4.id).cumulativeScore,
+          70,
+        );
+        expect(
+          game.players.firstWhere((p) => p.id == p4.id).revancheUsed,
+          isTrue,
+        );
+      },
+    );
+
+    test('Case 2: Game created with 3 players NEVER allows Revanche', () {
+      var game = GameEngine.createNewGame(
+        playerNames: ['User 1', 'User 2', 'User 3'],
+        eliminationLimit: 151,
+      );
+
+      final p1 = game.players[0];
+      final p2 = game.players[1];
+      final p3 = game.players[2];
+
+      game = GameEngine.commitRound(
+        game: game,
+        winnerId: p1.id,
+        scoresToAdd: {p2.id: 40, p3.id: 151},
+      );
+
+      // Even though 3 players are currently active, initialPlayerCount is 3, NOT 4
+      expect(game.initialPlayerCount, 3);
+      expect(game.activePlayers.length, 3);
+      expect(GameEngine.canTakeRevanche(game, p3.id), isFalse);
+
+      // Business logic must reject programmatic call
+      expect(() => GameEngine.applyRevanche(game, p3.id), throwsStateError);
+    });
+
+    test('Case 3: Game created with 2 players NEVER allows Revanche', () {
+      var game = GameEngine.createNewGame(
+        playerNames: ['User 1', 'User 2'],
+        eliminationLimit: 151,
+      );
+
+      final p1 = game.players[0];
+      final p2 = game.players[1];
+
+      game = GameEngine.commitRound(
+        game: game,
+        winnerId: p1.id,
+        scoresToAdd: {p2.id: 151},
+      );
+
+      expect(game.initialPlayerCount, 2);
+      expect(GameEngine.canTakeRevanche(game, p2.id), isFalse);
+      expect(() => GameEngine.applyRevanche(game, p2.id), throwsStateError);
+    });
+
+    test(
+      'Case 4: Game created with 4 players does NOT allow Revanche when only 2 players remain active',
+      () {
+        var game = GameEngine.createNewGame(
+          playerNames: ['User 1', 'User 2', 'User 3', 'User 4'],
+          eliminationLimit: 151,
+        );
+
+        final p1 = game.players[0];
+        final p2 = game.players[1];
+        final p3 = game.players[2];
+        final p4 = game.players[3];
+
+        // Round 1: p4 reaches 160 and is definitively eliminated
+        game = GameEngine.commitRound(
+          game: game,
+          winnerId: p1.id,
+          scoresToAdd: {p2.id: 30, p3.id: 40, p4.id: 160},
+        );
+        game = GameEngine.applyDefinitiveElimination(game, p4.id);
+
+        // Round 2: p3 reaches 155 and is definitively eliminated
+        game = GameEngine.commitRound(
+          game: game,
+          winnerId: p1.id,
+          scoresToAdd: {p2.id: 20, p3.id: 120},
+        );
+        game = GameEngine.applyDefinitiveElimination(game, p3.id);
+
+        // Now only 2 players remain active: p1 and p2
+        expect(game.initialPlayerCount, 4);
+        expect(game.activePlayers.length, 2);
+
+        // Round 3: p2 reaches 151
+        game = GameEngine.commitRound(
+          game: game,
+          winnerId: p1.id,
+          scoresToAdd: {p2.id: 110}, // 50 + 110 = 160
+        );
+
+        // When p2 is at/over limit, only 2 active players remain (p1 and p2)
+        expect(game.activePlayers.length, 2);
+        // Condition 2 fails (needs at least 3 active players including p2)
+        expect(GameEngine.canTakeRevanche(game, p2.id), isFalse);
+
+        // Programmatic rejection
+        expect(() => GameEngine.applyRevanche(game, p2.id), throwsStateError);
+
+        // Must be definitively eliminated
+        game = GameEngine.applyDefinitiveElimination(game, p2.id);
+        expect(game.isCompleted, isTrue);
+        expect(game.winnerId, p1.id);
+      },
+    );
+
+    test(
+      'Case 5: Game created with 4 players and 3 players remain active ALLOWS Revanche',
+      () {
+        var game = GameEngine.createNewGame(
+          playerNames: ['User 1', 'User 2', 'User 3', 'User 4'],
+          eliminationLimit: 151,
+        );
+
+        final p1 = game.players[0];
+        final p2 = game.players[1];
+        final p3 = game.players[2];
+        final p4 = game.players[3];
+
+        // Round 1: p4 reaches 160 and is definitively eliminated
+        game = GameEngine.commitRound(
+          game: game,
+          winnerId: p1.id,
+          scoresToAdd: {p2.id: 30, p3.id: 70, p4.id: 160},
+        );
+        game = GameEngine.applyDefinitiveElimination(game, p4.id);
+
+        // Now 3 players remain active: p1, p2, p3
+        expect(game.initialPlayerCount, 4);
+        expect(game.activePlayers.length, 3);
+
+        // Round 2: p3 reaches 155
+        game = GameEngine.commitRound(
+          game: game,
+          winnerId: p1.id,
+          scoresToAdd: {p2.id: 20, p3.id: 85}, // 70 + 85 = 155
+        );
+
+        // p1 (0), p2 (50), p3 (155) -> 3 active players including p3
+        expect(game.activePlayers.length, 3);
+        expect(GameEngine.canTakeRevanche(game, p3.id), isTrue);
+
+        // p3 takes Revanche and copies p2's score (50)
+        game = GameEngine.applyRevanche(game, p3.id);
+        final up3 = game.players.firstWhere((p) => p.id == p3.id);
+        expect(up3.cumulativeScore, 50);
+        expect(up3.revancheUsed, isTrue);
+        expect(up3.isActive, isTrue);
+      },
+    );
+
+    test(
+      'Original player count is preserved in serialization and undo',
+      () async {
+        var game = GameEngine.createNewGame(
+          playerNames: ['A', 'B', 'C', 'D'],
+          eliminationLimit: 151,
+        );
+
+        final json = game.toJson();
+        expect(json['initialPlayerCount'], 4);
+
+        final deserialized = Game.fromJson(json);
+        expect(deserialized.initialPlayerCount, 4);
+
+        // Verify undo preserves initialPlayerCount
+        game = GameEngine.commitRound(
+          game: game,
+          winnerId: game.players[0].id,
+          scoresToAdd: {
+            game.players[1].id: 10,
+            game.players[2].id: 20,
+            game.players[3].id: 30,
+          },
+        );
+        final undone = GameEngine.undoLastRound(game);
+        expect(undone.initialPlayerCount, 4);
       },
     );
   });

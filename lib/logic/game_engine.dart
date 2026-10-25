@@ -85,6 +85,7 @@ class GameEngine {
       id: gameId,
       createdAt: DateTime.now(),
       eliminationLimit: eliminationLimit,
+      initialPlayerCount: players.length,
       players: players,
       rounds: const [],
       status: GameStatus.inProgress,
@@ -213,7 +214,20 @@ class GameEngine {
   }
 
   /// Determines if an active player is eligible to take Revanche.
+  /// Revanche is allowed ONLY when both conditions are satisfied:
+  /// 1. The game was originally created with exactly 4 players.
+  /// 2. There are at least 3 active players, INCLUDING the player who triggered the elimination decision.
   static bool canTakeRevanche(Game game, String playerId) {
+    // Condition 1: Must have been originally created with exactly 4 players
+    if (game.initialPlayerCount != 4) {
+      return false;
+    }
+
+    // Condition 2: At least 3 active players, including the affected player
+    if (game.activePlayers.length < 3) {
+      return false;
+    }
+
     final player = game.players.where((p) => p.id == playerId).firstOrNull;
     if (player == null) return false;
     if (player.isEliminated) return false;
@@ -229,7 +243,7 @@ class GameEngine {
   static Game applyRevanche(Game game, String playerId) {
     if (!canTakeRevanche(game, playerId)) {
       throw StateError(
-        'Ce joueur ne peut pas utiliser la revanche (déjà utilisée ou aucune cible valide).',
+        'Ce joueur ne peut pas utiliser la revanche (conditions non remplies, déjà utilisée ou aucune cible valide).',
       );
     }
 

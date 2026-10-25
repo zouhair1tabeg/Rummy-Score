@@ -163,7 +163,23 @@ class EliminationDialog extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 5),
-                      if (player.revancheUsed)
+                      if (game.initialPlayerCount != 4)
+                        const Text(
+                          'Revanche non disponible : autorisée uniquement dans les parties créées à 4 joueurs.',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.danger,
+                          ),
+                        )
+                      else if (game.activePlayers.length < 3)
+                        const Text(
+                          'Revanche non disponible : il doit rester au moins 3 joueurs actifs.',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.danger,
+                          ),
+                        )
+                      else if (player.revancheUsed)
                         const Text(
                           'Revanche déjà utilisée. Règle : une seule fois par joueur.',
                           style: TextStyle(
